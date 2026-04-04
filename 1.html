@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0e1a">
+<title>SCA — Algoritmo ESC 2023</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --card: #111827;
+    --border: #1e293b;
+    --border2: #334155;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --dim: #475569;
+    --red: #ef4444;
+    --red-bg: #450a0a;
+    --red-bd: #7f1d1d;
+    --red-t: #fca5a5;
+    --orange: #f97316;
+    --orange-bg: #431407;
+    --orange-bd: #9a3412;
+    --orange-t: #fdba74;
+    --green: #22c55e;
+    --green-bg: #052e16;
+    --green-bd: #14532d;
+    --green-t: #86efac;
+    --blue: #3b82f6;
+    --blue-bg: #0a1929;
+    --blue-bd: #1e3a5f;
+    --blue-t: #93c5fd;
+    --gold: #f59e0b;
+    --gold-bg: #78350f;
+    --gold-t: #fcd34d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: Georgia, 'Times New Roman', serif; overflow-x: hidden; }
+
+  /* HEADER */
+  #app-header {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    padding: 14px 18px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  #app-header .title-group .eyebrow { font-size: 10px; color: var(--dim); font-family: monospace; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+  #app-header .title-group .main-title { font-size: 16px; font-weight: 700; color: var(--text); margin-top: 2px; }
+  #app-header .tags { display: flex; gap: 6px; }
+  .tag { background: var(--border); color: var(--muted); padding: 2px 7px; border-radius: 4px; font-size: 10px; font-family: monospace; }
+
+  /* PROGRESS */
+  #progress-track { height: 3px; background: var(--border); }
+  #progress-fill { height: 100%; background: var(--red); width: 0%; transition: width .4s ease; }
+
+  /* NAV */
+  #nav-bar { padding: 8px 18px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-height: 38px; }
+  #back-btn { background: transparent; border: 1px solid var(--border2); border-radius: 6px; color: var(--muted); font-size: 11px; padding: 4px 12px; cursor: pointer; font-family: monospace; display: none; }
+  .crumb { font-size: 10px; color: var(--dim); font-family: monospace; }
+
+  /* MAIN */
+  #main { max-width: 640px; margin: 0 auto; padding: 6px 16px 60px; }
+
+  /* CARD */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 22px 20px; animation: fadeIn .25s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: .06em; font-family: monospace; text-transform: uppercase; }
+  .badge-red { background: var(--red-bd); color: var(--red-t); }
+  .badge-green { background: var(--green-bd); color: var(--green-t); }
+  .badge-blue { background: var(--blue-bd); color: var(--blue-t); }
+  .badge-orange { background: var(--orange-bd); color: var(--orange-t); }
+  .badge-gold { background: var(--gold-bg); color: var(--gold-t); }
+
+  .card-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .card-eyebrow { font-size: 11px; color: var(--dim); font-family: monospace; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+  .card-question { font-size: 18px; font-weight: 700; color: var(--text); line-height: 1.35; margin-bottom: 16px; }
+  .ev-label { font-size: 10px; color: var(--gold); font-family: monospace; font-weight: 700; }
+
+  /* HINT BOX */
+  .hint-box { background: #0f172a; border: 1px solid var(--border); border-left: 3px solid var(--blue); border-radius: 8px; padding: 11px 13px; margin-bottom: 20px; }
+  .hint-label { font-size: 10px; color: var(--blue); font-weight: 700; font-family: monospace; text-transform: uppercase; margin-bottom: 4px; }
+  .hint-text { font-size: 12px; color: var(--muted); line-height: 1.55; }
+
+  /* OPTION BUTTONS */
+  .opt-btn { width: 100%; padding: 13px 16px; text-align: left; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s; line-height: 1.4; margin-bottom: 8px; border-width: 1px; border-style: solid; }
+  .opt-red { background: var(--red-bg); border-color: #991b1b; color: var(--red-t); }
+  .opt-red:active { background: var(--red-bd); }
+  .opt-green { background: var(--green-bg); border-color: #166534; color: var(--green-t); }
+  .opt-green:active { background: var(--green-bd); }
+  .opt-blue { background: var(--blue-bg); border-color: #1e40af; color: var(--blue-t); }
+  .opt-blue:active { background: var(--blue-bd); }
+  .opt-orange { background: var(--orange-bg); border-color: #c2410c; color: var(--orange-t); }
+  .opt-orange:active { background: var(--orange-bd); }
+
+  /* ENDPOINT CARD */
+  .ep-card { border-radius: 14px; padding: 22px 20px; animation: fadeIn .25s ease; border-width: 2px; border-style: solid; }
+  .ep-red { background: linear-gradient(135deg,var(--red-bg) 0%,#111827 100%); border-color: var(--red-bd); }
+  .ep-orange { background: linear-gradient(135deg,var(--orange-bg) 0%,#111827 100%); border-color: var(--orange-bd); }
+  .ep-green { background: linear-gradient(135deg,var(--green-bg) 0%,#111827 100%); border-color: var(--green-bd); }
+  .ep-blue { background: linear-gradient(135deg,var(--blue-bg) 0%,#111827 100%); border-color: var(--blue-bd); }
+  .ep-neutral { background: linear-gradient(135deg,#1e293b 0%,#111827 100%); border-color: var(--border2); }
+  .ep-title { font-size: 20px; font-weight: 800; color: var(--text); margin: 10px 0 10px; line-height: 1.3; }
+  .ep-body { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 18px; }
+  .tx-section-label { font-size: 10px; color: var(--dim); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px; }
+
+  /* TREATMENT ITEMS */
+  .tx-item { display: flex; align-items: flex-start; gap: 9px; border-radius: 8px; padding: 8px 11px; margin-bottom: 5px; border-width: 1px; border-style: solid; }
+  .tx-drug { background: #0f2a1e; border-color: var(--green-bd); }
+  .tx-drug span.tx-text { font-size: 12px; color: var(--green-t); line-height: 1.45; }
+  .tx-proc { background: #0a1929; border-color: var(--blue-bd); }
+  .tx-proc span.tx-text { font-size: 12px; color: var(--blue-t); line-height: 1.45; }
+  .tx-warning { background: #1c0a00; border-color: var(--gold-bg); }
+  .tx-warning span.tx-text { font-size: 12px; color: var(--gold-t); line-height: 1.45; }
+  .tx-icon { font-size: 13px; margin-top: 1px; flex-shrink: 0; }
+
+  .ev-box { margin-top: 14px; padding: 7px 12px; background: #0f172a; border-radius: 8px; display: inline-flex; align-items: center; gap: 8px; }
+  .ev-box .ev-label2 { font-size: 10px; color: var(--dim); font-weight: 700; }
+  .ev-box .ev-val { font-size: 11px; color: var(--gold); font-weight: 700; font-family: monospace; }
+
+  .restart-btn { margin-top: 20px; width: 100%; padding: 12px 0; background: transparent; border: 1px solid var(--border2); border-radius: 10px; color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; font-family: Georgia, serif; }
+  .restart-btn:active { border-color: #64748b; color: var(--text); }
+
+  /* DISCLAIMER */
+  #disclaimer { margin-top: 24px; padding: 13px 16px; background: #0f172a; border: 1px solid var(--border); border-radius: 10px; font-size: 11px; color: var(--dim); line-height: 1.6; }
+  #disclaimer strong { color: var(--muted); }
+  #disclaimer .warn-label { color: var(--gold); font-weight: 700; }
+
+  /* ── GRACE CALCULATOR ── */
+  #grace-wrap { animation: fadeIn .25s ease; }
+  .grace-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 22px 20px; }
+  .grace-title { font-size: 19px; font-weight: 800; color: var(--text); margin: 8px 0 4px; }
+  .grace-subtitle { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 18px; }
+
+  /* Progress bar grace */
+  .grace-progress-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+  .grace-progress-label { font-size: 10px; color: var(--dim); font-family: monospace; }
+  .grace-progress-pct { font-size: 10px; font-family: monospace; font-weight: 700; }
+  .grace-progress-track { height: 4px; background: var(--border); border-radius: 999px; margin-bottom: 20px; }
+  .grace-progress-fill { height: 100%; border-radius: 999px; transition: width .3s ease; background: var(--blue); }
+
+  /* Live score */
+  #live-score-box { background: #0f172a; border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; margin-bottom: 20px; display: none; align-items: center; justify-content: space-between; }
+  #live-score-num { font-size: 26px; font-weight: 900; font-family: monospace; }
+  #live-risk-badge { font-size: 10px; font-weight: 700; padding: 2px 10px; border-radius: 999px; border-width: 1px; border-style: solid; }
+
+  /* Field cards */
+  .field-card { border-radius: 10px; padding: 13px 14px; margin-bottom: 14px; border-width: 1px; border-style: solid; transition: all .2s; }
+  .field-card.empty { background: #0a0f1a; border-color: var(--border); }
+  .field-card.filled { background: #0a1a0f; border-color: var(--green-bd); }
+  .field-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .field-label { font-size: 13px; font-weight: 700; }
+  .field-card.empty .field-label { color: var(--text); }
+  .field-card.filled .field-label { color: var(--green-t); }
+  .field-unit { font-size: 10px; color: var(--dim); font-weight: 400; margin-left: 4px; }
+  .field-check { font-size: 14px; color: var(--green); }
+
+  /* Range buttons */
+  .range-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .range-btn { padding: 7px 10px; border-radius: 7px; cursor: pointer; font-size: 11px; font-weight: 600; transition: all .15s; border-width: 1px; border-style: solid; background: #0f172a; border-color: var(--border); color: var(--muted); font-family: Georgia, serif; }
+  .range-btn:active { transform: scale(.97); }
+  .range-btn.sel { background: var(--blue-bg); border-color: var(--blue-t); color: var(--blue-t); }
+  .range-btn .pts { opacity: .55; font-size: 9px; }
+
+  /* Binary buttons */
+  .binary-grid { display: flex; gap: 8px; }
+  .bin-btn { flex: 1; padding: 11px 0; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all .15s; border-width: 1px; border-style: solid; background: #0f172a; border-color: var(--border); color: var(--muted); font-family: Georgia, serif; }
+  .bin-btn.sel-yes { background: var(--red-bg); border-color: var(--red-t); color: var(--red-t); }
+  .bin-btn.sel-no { background: var(--green-bg); border-color: var(--green-t); color: var(--green-t); }
+
+  /* Calc button */
+  #calc-btn { margin-top: 22px; width: 100%; padding: 15px 0; border-radius: 10px; border: none; font-size: 14px; font-weight: 800; cursor: pointer; letter-spacing: .04em; transition: all .2s; font-family: Georgia, serif; }
+  #calc-btn.ready { background: linear-gradient(135deg,#1e40af,#3b82f6); color: #fff; }
+  #calc-btn.not-ready { background: var(--border); color: var(--dim); cursor: not-allowed; }
+
+  .grace-back-btn { margin-top: 10px; width: 100%; padding: 11px 0; background: transparent; border: 1px solid var(--border2); border-radius: 10px; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; font-family: Georgia, serif; }
+
+  /* RESULT */
+  #grace-result { animation: fadeIn .3s ease; }
+  .result-score-big { text-align: center; margin-bottom: 24px; }
+  .result-score-num { font-size: 76px; font-weight: 900; font-family: monospace; letter-spacing: -3px; line-height: 1; }
+  .result-score-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .result-risk-pill { margin-top: 14px; }
+  .result-risk-pill span { padding: 6px 22px; border-radius: 999px; font-size: 16px; font-weight: 800; letter-spacing: .06em; font-family: monospace; border-width: 2px; border-style: solid; }
+  .result-mortality { margin-top: 10px; font-size: 12px; color: var(--muted); }
+  .result-mortality strong { }
+
+  .thresholds { display: flex; gap: 7px; margin-bottom: 18px; }
+  .thresh-item { flex: 1; border-radius: 8px; padding: 8px 8px; text-align: center; border-width: 1px; border-style: solid; }
+  .thresh-item .t-label { font-size: 9px; font-weight: 700; letter-spacing: .05em; }
+  .thresh-item .t-range { font-size: 13px; font-family: monospace; font-weight: 800; }
+  .thresh-low { background: var(--green-bg); border-color: var(--green-bd); color: var(--green); }
+  .thresh-mid { background: var(--orange-bg); border-color: var(--orange-bd); color: var(--orange); }
+  .thresh-high { background: var(--red-bg); border-color: var(--red-bd); color: var(--red); }
+
+  .breakdown-box { background: #0f172a; border: 1px solid var(--border); border-radius: 10px; padding: 13px 14px; margin-bottom: 18px; }
+  .breakdown-title { font-size: 10px; color: var(--dim); font-weight: 700; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 10px; }
+  .breakdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 16px; }
+  .breakdown-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border); }
+  .breakdown-field { font-size: 11px; color: var(--muted); }
+  .breakdown-right { display: flex; align-items: center; gap: 8px; }
+  .breakdown-sel { font-size: 9px; color: var(--dim); max-width: 55px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .breakdown-pts { font-size: 11px; font-weight: 700; font-family: monospace; min-width: 26px; text-align: right; }
+  .breakdown-total { grid-column: 1/-1; display: flex; justify-content: flex-end; padding-top: 8px; margin-top: 4px; border-top: 1px solid var(--border2); }
+  .breakdown-total-val { font-size: 13px; font-weight: 800; font-family: monospace; }
+
+  .rec-box { border-radius: 10px; padding: 13px 14px; margin-bottom: 20px; border-width: 1px; border-style: solid; }
+  .rec-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px; }
+  .rec-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+
+  #go-protocol-btn { width: 100%; padding: 14px 0; border-radius: 10px; font-size: 14px; font-weight: 800; cursor: pointer; letter-spacing: .04em; font-family: Georgia, serif; border-width: 1px; border-style: solid; }
+  #recalc-btn { margin-top: 10px; width: 100%; padding: 10px 0; background: transparent; border: 1px solid var(--border2); border-radius: 10px; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; font-family: Georgia, serif; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: var(--bg); } ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div id="app-header">
+  <div class="title-group">
+    <div class="eyebrow">Algoritmo Clínico</div>
+    <div class="main-title">Síndrome Coronario Agudo</div>
+  </div>
+  <div class="tags">
+    <span class="tag">ESC 2023</span>
+    <span class="tag">GRACE</span>
+  </div>
+</div>
+
+<div id="progress-track"><div id="progress-fill"></div></div>
+
+<div id="nav-bar">
+  <button id="back-btn" onclick="goBack()">← Atrás</button>
+  <span id="crumbs"></span>
+</div>
+
+<div id="main">
+  <div id="view-container"></div>
+  <div id="disclaimer">
+    <span class="warn-label">⚠ Uso clínico: </span>
+    Herramienta de apoyo a la decisión basada en las <strong>Guías ESC 2023 para SCA</strong> y el <strong>Score GRACE validado</strong>. No sustituye al juicio clínico del especialista.
+  </div>
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+
+const GRACE_FIELDS = [
+  { key:"age", label:"Edad", unit:"años", type:"range", points:[
+    {label:"<30",max:29,pts:0},{label:"30–39",max:39,pts:8},{label:"40–49",max:49,pts:25},
+    {label:"50–59",max:59,pts:41},{label:"60–69",max:69,pts:58},{label:"70–79",max:79,pts:75},
+    {label:"80–89",max:89,pts:91},{label:"≥90",max:999,pts:100}]},
+  { key:"hr", label:"FC", unit:"lpm", type:"range", points:[
+    {label:"<70",max:69,pts:0},{label:"70–89",max:89,pts:3},{label:"90–109",max:109,pts:9},
+    {label:"110–149",max:149,pts:15},{label:"150–199",max:199,pts:24},{label:"≥200",max:999,pts:38}]},
+  { key:"sbp", label:"TAS", unit:"mmHg", type:"range", points:[
+    {label:"<80",max:79,pts:58},{label:"80–99",max:99,pts:53},{label:"100–119",max:119,pts:43},
+    {label:"120–139",max:139,pts:34},{label:"140–159",max:159,pts:24},{label:"160–199",max:199,pts:10},{label:"≥200",max:999,pts:0}]},
+  { key:"cr", label:"Creatinina", unit:"mg/dL", type:"range", points:[
+    {label:"0–0.39",max:0.39,pts:1},{label:"0.40–0.79",max:0.79,pts:3},{label:"0.80–1.19",max:1.19,pts:5},
+    {label:"1.20–1.59",max:1.59,pts:7},{label:"1.60–1.99",max:1.99,pts:9},{label:"2.00–3.99",max:3.99,pts:15},{label:"≥4.0",max:999,pts:20}]},
+  { key:"killip", label:"Killip-Kimball", unit:"", type:"range", points:[
+    {label:"I — Sin IC",max:0,pts:0},{label:"II — Estertores",max:1,pts:20},
+    {label:"III — EAP",max:2,pts:39},{label:"IV — Shock",max:3,pts:59}]},
+  { key:"arrest", label:"PCR al ingreso", unit:"", type:"binary", yesPoints:39, yesLabel:"Sí", noLabel:"No"},
+  { key:"ecg", label:"Desviación ST en ECG", unit:"", type:"binary", yesPoints:28, yesLabel:"Sí (↑ o ↓ ST)", noLabel:"No"},
+  { key:"enz", label:"Enzimas cardíacas elevadas", unit:"", type:"binary", yesPoints:14, yesLabel:"Sí (Tn+)", noLabel:"No"},
+];
+
+const STEPS = {
+  start: {
+    id:"start", eyebrow:"Sistema A.C.S. — Guía ESC 2023", ev:"I-C",
+    question:"¿El paciente presenta dolor torácico agudo u síntomas equivalentes?",
+    hint:"Opresión, irradiación a brazo/mandíbula, disnea, diaforesis, dolor epigástrico, síncope. Presentación atípica hasta en 30% (mujeres, ancianos, diabéticos).",
+    options:[
+      {label:"Sí → Continuar evaluación", next:"ecg", color:"green"},
+      {label:"No → SCA improbable", next:"no_sca", color:"red"}]
+  },
+  no_sca: {
+    id:"no_sca", type:"endpoint", ep:"neutral", badge:"SCA Improbable",
+    title:"SCA Improbable",
+    body:"Considerar diagnósticos alternativos: disección aórtica, TEP, pericarditis, miocarditis, dolor musculoesquelético. Si duda clínica persistente, continuar protocolo."
+  },
+  ecg: {
+    id:"ecg", eyebrow:"Primer contacto médico", ev:"I-B",
+    question:"¿El ECG muestra elevación persistente del segmento ST (o equivalentes)?",
+    hint:"Realizar en <10 min. Criterios ST elevación punto J: ≥2,5 mm hombres <40a, ≥2 mm hombres ≥40a, ≥1,5 mm mujeres en V2-V3; ≥1 mm otras. También: BRI nuevo, Wellens, onda T de Winter.",
+    options:[
+      {label:"Sí → SCACEST (elevación ST persistente)", next:"scacest_triage", color:"red"},
+      {label:"No → SCASEST (sin elevación ST)", next:"acs_system", color:"blue"}]
+  },
+  scacest_triage: {
+    id:"scacest_triage", badge:"SCACEST", badgeColor:"red", ev:"I-A",
+    eyebrow:"SCACEST — Evaluación de Riesgo",
+    question:"¿Presenta inestabilidad hemodinámica, shock o parada cardíaca?",
+    hint:"Shock cardiogénico, IC aguda grave, arritmias letales, PCR tras llegada. Requieren actuación en <2 horas.",
+    options:[
+      {label:"Sí → Inestable / Muy alto riesgo", next:"scacest_immediate", color:"red"},
+      {label:"No → Estable → ICP primaria", next:"scacest_stable", color:"orange"}]
+  },
+  scacest_immediate: {
+    id:"scacest_immediate", type:"endpoint", ep:"red", badge:"SCACEST · Muy alto riesgo",
+    title:"Angiografía Coronaria INMEDIATA",
+    body:"Traslado urgente a centro con ICP 24/7. Coronariografía + ICP emergente <2h del primer contacto médico. Activar laboratorio de hemodinámica.",
+    treatments:[
+      {t:"drug",l:"AAS 150–300 mg vo (300 mg iv si no puede tragar)"},
+      {t:"drug",l:"Anticoagulación: HNF 70–100 UI/kg iv"},
+      {t:"proc",l:"ICP emergente sobre arteria responsable"},
+      {t:"proc",l:"Soporte hemodinámico si shock cardiogénico"}],
+    ev:"I-A · Objetivo: <2h primer contacto"
+  },
+  scacest_stable: {
+    id:"scacest_stable", badge:"SCACEST", badgeColor:"red", ev:"I-A",
+    eyebrow:"SCACEST Estable — Reperfusión",
+    question:"¿Hay acceso a ICP primaria en ≤120 min desde el primer contacto médico?",
+    hint:"Si el tiempo de traslado supera 120 min, la fibrinólisis es la estrategia preferida (sin contraindicaciones). Objetivo ICP: <60 min si ya está en hospital con hemodinámica.",
+    options:[
+      {label:"Sí → ICP primaria ≤120 min", next:"scacest_icp", color:"green"},
+      {label:"No → Fibrinólisis + traslado", next:"scacest_fibrinolysis", color:"orange"}]
+  },
+  scacest_icp: {
+    id:"scacest_icp", type:"endpoint", ep:"orange", badge:"SCACEST · ICP Primaria",
+    title:"ICP Primaria — Estrategia Preferida",
+    body:"Reperfusión mecánica de la arteria responsable del infarto. Revascularización completa en mismo procedimiento o diferida.",
+    treatments:[
+      {t:"drug",l:"AAS 150–300 mg + Ticagrelor 180 mg o Prasugrel 60 mg"},
+      {t:"drug",l:"Anticoagulación: HNF 70–100 UI/kg iv o Bivalirudina"},
+      {t:"warning",l:"No pretratamiento rutinario con P2Y12 (ESC 2023)"},
+      {t:"proc",l:"ICP sobre arteria responsable — stent DES preferido"},
+      {t:"proc",l:"Revascularización completa (misma sesión o diferida)"}],
+    ev:"I-A · Objetivo: <60 min en hospital con ICP / <120 min traslado"
+  },
+  scacest_fibrinolysis: {
+    id:"scacest_fibrinolysis", type:"endpoint", ep:"orange", badge:"SCACEST · Fibrinólisis",
+    title:"Fibrinólisis + Traslado a Centro ICP",
+    body:"Administrar fibrinolítico en <10 min del diagnóstico. Traslado inmediato a centro con ICP. Angiografía sistemática a las 2–24h post-fibrinólisis.",
+    treatments:[
+      {t:"drug",l:"AAS 150–300 mg + Clopidogrel 300 mg (≤75a) / 75 mg (>75a)"},
+      {t:"drug",l:"Tenecteplasa peso-ajustada iv"},
+      {t:"drug",l:"Enoxaparina: 30 mg iv + 1 mg/kg sc/12h"},
+      {t:"proc",l:"Angiografía a las 2–24h si fibrinólisis exitosa"},
+      {t:"proc",l:"ICP rescate INMEDIATA si fallo fibrinólisis (<50% resolución ST a 60–90 min)"}],
+    ev:"I-A · Si ICP no disponible en <120 min"
+  },
+  acs_system: {
+    id:"acs_system", badge:"SCASEST", badgeColor:"blue", ev:"I-C",
+    eyebrow:"SCASEST — Evaluación Urgente",
+    question:"¿Presenta criterios de MUY ALTO riesgo con indicación de coronariografía inmediata (<2h)?",
+    hint:"Inestabilidad hemodinámica/shock · Dolor recurrente refractario · IC aguda isquémica · Arritmias letales o PCR · Complicaciones mecánicas · Cambios dinámicos repetidos del ST/BRIHH.",
+    options:[
+      {label:"Sí → Muy alto riesgo → Angiografía <2h", next:"scasest_immediate", color:"red"},
+      {label:"No → Estratificar con hs-cTn + GRACE Score", next:"troponin", color:"blue"}]
+  },
+  scasest_immediate: {
+    id:"scasest_immediate", type:"endpoint", ep:"red", badge:"SCASEST · Muy alto riesgo",
+    title:"Coronariografía Invasiva INMEDIATA (<2h)",
+    body:"Indicación independiente del resultado de troponina. Inestabilidad que no permite esperar estratificación con biomarcadores.",
+    treatments:[
+      {t:"drug",l:"AAS 150–300 mg + Anticoagulación parenteral (HNF)"},
+      {t:"drug",l:"Ticagrelor/Prasugrel según anatomía (no pretratamiento rutinario)"},
+      {t:"proc",l:"Angiografía + ICP si indicada (<2h)"},
+      {t:"proc",l:"Soporte hemodinámico si shock cardiogénico"}],
+    ev:"I-C"
+  },
+  troponin: {
+    id:"troponin", badge:"SCASEST", badgeColor:"blue", ev:"I-A",
+    eyebrow:"Troponina de Alta Sensibilidad (hs-cTn)",
+    question:"Algoritmo 0h/1h — hs-cTn: ¿cuál es el resultado combinado?",
+    hint:"Determinar hs-cTn en 0h y 1h. Evaluar valor absoluto + delta. Zona observación: repetir a 3h + ecocardiografía. Tras clasificar, calcular GRACE Score para definir estrategia.",
+    options:[
+      {label:"Descarte: 0h muy baja + delta mínimo + síntomas >3h", next:"troponin_rule_out", color:"green"},
+      {label:"Confirmación: 0h elevada o delta significativo → IAMSEST", next:"grace_calculator", color:"red"},
+      {label:"Zona observación: no clasificable → repetir a 3h", next:"troponin_observe", color:"orange"}]
+  },
+  troponin_rule_out: {
+    id:"troponin_rule_out", badge:"hs-cTn negativa", badgeColor:"green", ev:"IIa-A",
+    eyebrow:"IAMSEST Descartado — Calcular GRACE",
+    question:"Troponina negativa descarta IAMSEST, pero puede existir angina inestable. Calcular GRACE Score para orientar la estrategia.",
+    hint:"Incluso con troponina negativa, el score GRACE estratifica el riesgo isquémico global y determina la necesidad de estrategia invasiva versus alta ambulatoria.",
+    options:[
+      {label:"Calcular GRACE Score →", next:"grace_calculator", color:"blue"}]
+  },
+  troponin_observe: {
+    id:"troponin_observe", type:"endpoint", ep:"orange", badge:"Zona Observación",
+    title:"Vía de Observación — Repetir hs-cTn a 3h",
+    body:"Pacientes no clasificables en 0h/1h. Repetir hs-cTn a 3h. Ecocardiografía para evaluar función sistólica y motilidad segmentaria. Calcular GRACE al tener todos los datos.",
+    treatments:[
+      {t:"proc",l:"Monitorización ECG continua"},
+      {t:"proc",l:"hs-cTn a las 3h"},
+      {t:"proc",l:"Ecocardiografía de urgencia"},
+      {t:"drug",l:"AAS + Anticoagulación según evolución clínica"}],
+    ev:"I-B"
+  },
+  grace_calculator: { id:"grace_calculator", type:"grace" },
+  scasest_high_risk: {
+    id:"scasest_high_risk", type:"endpoint", ep:"red", badge:"SCASEST · GRACE >140 · Alto Riesgo",
+    title:"Estrategia Invasiva Precoz (<24h)",
+    body:"GRACE >140. Angiografía coronaria durante el ingreso, preferiblemente en las primeras 24h. Revascularización guiada por anatomía: ICP vs. CABG.",
+    treatments:[
+      {t:"drug",l:"AAS 75–100 mg/día indefinido"},
+      {t:"drug",l:"Ticagrelor 180 mg carga + 90 mg/12h (preferido) o Prasugrel"},
+      {t:"drug",l:"Anticoagulación: HNF, Enoxaparina o Fondaparinux"},
+      {t:"warning",l:"No pretratamiento rutinario P2Y12 si anatomía desconocida (ESC 2023)"},
+      {t:"proc",l:"Coronariografía <24h + ICP/CABG según anatomía"},
+      {t:"proc",l:"Revascularización completa recomendada"}],
+    ev:"IIa-A · GRACE >140"
+  },
+  scasest_intermediate_risk: {
+    id:"scasest_intermediate_risk", type:"endpoint", ep:"orange", badge:"SCASEST · GRACE 109–140 · Riesgo Intermedio",
+    title:"Estrategia Invasiva <72h",
+    body:"GRACE 109–140. Coronariografía durante el ingreso en las primeras 72h. Tratamiento médico óptimo mientras se espera.",
+    treatments:[
+      {t:"drug",l:"AAS 75–100 mg/día + Ticagrelor o Clopidogrel"},
+      {t:"drug",l:"Fondaparinux 2,5 mg/día sc (primera elección, menor sangrado)"},
+      {t:"drug",l:"BB, IECA/ARA-II, estatina alta intensidad"},
+      {t:"proc",l:"Coronariografía <72h"},
+      {t:"proc",l:"Ecocardiografía para valorar FEVI y motilidad segmentaria"}],
+    ev:"IIa-A · GRACE 109–140"
+  },
+  scasest_low_risk: {
+    id:"scasest_low_risk", type:"endpoint", ep:"blue", badge:"SCASEST · GRACE <109 · Bajo Riesgo",
+    title:"Estrategia Conservadora / Invasiva Diferida",
+    body:"GRACE <109 sin criterios de alto riesgo. Tratamiento médico optimizado. Alta con prueba de isquemia no invasiva o coronariografía electiva ambulatoria.",
+    treatments:[
+      {t:"drug",l:"AAS 75–100 mg/día + Ticagrelor o Clopidogrel"},
+      {t:"drug",l:"Fondaparinux o Enoxaparina durante el ingreso"},
+      {t:"drug",l:"BB, IECA/ARA-II, estatina alta intensidad (LDL <55 mg/dL)"},
+      {t:"proc",l:"Prueba de estrés no invasiva antes del alta o ambulatoria"},
+      {t:"proc",l:"Seguimiento ambulatorio en Cardiología en 4–6 semanas"}],
+    ev:"IIa-A · GRACE <109"
+  }
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let history = [];
+let currentId = "start";
+let graceVals = {};
+let graceSubmitted = false;
+
+// ── GRACE HELPERS ─────────────────────────────────────────────────────────────
+function calcGrace() {
+  let total = 0;
+  for (const f of GRACE_FIELDS) {
+    const v = graceVals[f.key];
+    if (v === undefined || v === null) continue;
+    if (f.type === "binary") { if (v === "yes") total += f.yesPoints; }
+    else { const found = f.points.find(p => Number(v) <= p.max); if (found) total += found.pts; }
+  }
+  return total;
+}
+
+function graceRisk(score) {
+  if (score < 109) return { level:"BAJO", color:"var(--green)", bg:"var(--green-bg)", border:"var(--green-bd)", mortality:"<1%", rec:"Alta con seguimiento ambulatorio. Estrategia invasiva diferida o selectiva (prueba de isquemia).", next:"scasest_low_risk" };
+  if (score <= 140) return { level:"INTERMEDIO", color:"var(--orange)", bg:"var(--orange-bg)", border:"var(--orange-bd)", mortality:"1–3%", rec:"Estrategia invasiva durante el ingreso en <72h. Tratamiento médico óptimo mientras se espera.", next:"scasest_intermediate_risk" };
+  return { level:"ALTO", color:"var(--red)", bg:"var(--red-bg)", border:"var(--red-bd)", mortality:">3%", rec:"Estrategia invasiva precoz en <24h. Coronariografía urgente + ICP/CABG según anatomía.", next:"scasest_high_risk" };
+}
+
+function graceFilledCount() { return GRACE_FIELDS.filter(f => graceVals[f.key] !== undefined && graceVals[f.key] !== null).length; }
+function graceAllFilled() { return graceFilledCount() === GRACE_FIELDS.length; }
+
+// ── RENDER HELPERS ────────────────────────────────────────────────────────────
+function badgeHTML(text, color) {
+  return `<span class="badge badge-${color}">${text}</span>`;
+}
+
+function txIcon(t) { return {drug:"💊",proc:"🔬",warning:"⚠️"}[t]||"•"; }
+
+function treatmentsHTML(treatments) {
+  if (!treatments) return "";
+  return `<div class="tx-section-label">Tratamiento recomendado</div>` +
+    treatments.map(tx => `
+      <div class="tx-item tx-${tx.t}">
+        <span class="tx-icon">${txIcon(tx.t)}</span>
+        <span class="tx-text">${tx.l}</span>
+      </div>`).join("");
+}
+
+function evBoxHTML(ev) {
+  if (!ev) return "";
+  return `<div class="ev-box"><span class="ev-label2">EVIDENCIA:</span><span class="ev-val">${ev}</span></div>`;
+}
+
+// ── RENDER STEPS ──────────────────────────────────────────────────────────────
+function renderStep(step) {
+  if (step.type === "endpoint") return renderEndpoint(step);
+  if (step.type === "grace") return renderGrace();
+
+  const badges = [];
+  if (step.badge) badges.push(badgeHTML(step.badge, step.badgeColor || "blue"));
+  if (step.ev) badges.push(`<span class="ev-label">Evidencia ${step.ev}</span>`);
+
+  const hint = step.hint ? `
+    <div class="hint-box">
+      <div class="hint-label">Nota clínica</div>
+      <div class="hint-text">${step.hint}</div>
+    </div>` : "";
+
+  const opts = step.options.map(o =>
+    `<button class="opt-btn opt-${o.color}" onclick="navigate('${o.next}')">${o.label}</button>`
+  ).join("");
+
+  return `
+    <div class="card">
+      <div class="card-badges">${badges.join("")}</div>
+      <div class="card-eyebrow">${step.eyebrow || step.id}</div>
+      <div class="card-question">${step.question}</div>
+      ${hint}
+      <div>${opts}</div>
+    </div>`;
+}
+
+function renderEndpoint(step) {
+  const badgeColorMap = { red:"red", orange:"orange", green:"green", blue:"blue", neutral:"blue" };
+  const bc = badgeColorMap[step.ep] || "blue";
+  return `
+    <div class="ep-card ep-${step.ep}">
+      <div class="card-badges">${badgeHTML(step.badge, bc)}</div>
+      <div class="ep-title">${step.title}</div>
+      <div class="ep-body">${step.body}</div>
+      ${treatmentsHTML(step.treatments)}
+      ${evBoxHTML(step.ev)}
+      <button class="restart-btn" onclick="restart()">↺ Nuevo paciente</button>
+    </div>`;
+}
+
+// ── GRACE RENDER ──────────────────────────────────────────────────────────────
+function renderGrace() {
+  if (graceSubmitted && graceAllFilled()) return renderGraceResult();
+
+  const score = calcGrace();
+  const filled = graceFilledCount();
+  const pct = Math.round((filled / GRACE_FIELDS.length) * 100);
+  const risk = graceRisk(score);
+
+  const liveBox = filled > 0 ? `
+    <div id="live-score-box" style="display:flex">
+      <span style="font-size:12px;color:var(--dim)">Puntuación parcial</span>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span id="live-score-num" style="color:${risk.color}">${score}</span>
+        ${filled >= 4 ? `<span id="live-risk-badge" style="color:${risk.color};background:${risk.bg};border-color:${risk.border}">${risk.level}</span>` : ""}
+      </div>
+    </div>` : "";
+
+  const fieldsHTML = GRACE_FIELDS.map(f => {
+    const isOk = graceVals[f.key] !== undefined && graceVals[f.key] !== null;
+    let controls = "";
+    if (f.type === "binary") {
+      controls = `<div class="binary-grid">
+        <button class="bin-btn ${graceVals[f.key]==='yes'?'sel-yes':''}" onclick="setGrace('${f.key}','yes')">${f.yesLabel}</button>
+        <button class="bin-btn ${graceVals[f.key]==='no'?'sel-no':''}" onclick="setGrace('${f.key}','no')">${f.noLabel}</button>
+      </div>`;
+    } else {
+      controls = `<div class="range-grid">${f.points.map(p => {
+        const keyVal = p.max;
+        const sel = graceVals[f.key] === keyVal;
+        return `<button class="range-btn ${sel?'sel':''}" onclick="setGrace('${f.key}',${keyVal})">${p.label} <span class="pts">+${p.pts}</span></button>`;
+      }).join("")}</div>`;
+    }
+    return `
+      <div class="field-card ${isOk?'filled':'empty'}">
+        <div class="field-label-row">
+          <span class="field-label">${f.label}${f.unit?`<span class="field-unit">(${f.unit})</span>`:""}</span>
+          ${isOk?'<span class="field-check">✓</span>':""}
+        </div>
+        ${controls}
+      </div>`;
+  }).join("");
+
+  const btnClass = graceAllFilled() ? "ready" : "not-ready";
+  const btnText = graceAllFilled() ? "Calcular GRACE Score →" : `Faltan ${GRACE_FIELDS.length - filled} variable${GRACE_FIELDS.length-filled===1?"":"s"}`;
+
+  return `
+    <div id="grace-wrap">
+      <div class="grace-card">
+        <div class="card-badges">
+          ${badgeHTML("SCASEST","blue")}
+          ${badgeHTML("GRACE Score","gold")}
+          <span class="ev-label">Evidencia IIa-A</span>
+        </div>
+        <div class="grace-title">Calculadora GRACE Score</div>
+        <div class="grace-subtitle">Estratificación de riesgo en SCASEST según guía ESC 2023. Selecciona el rango correspondiente en cada variable.</div>
+        <div class="grace-progress-row">
+          <span class="grace-progress-label">${filled}/${GRACE_FIELDS.length} variables completadas</span>
+          <span class="grace-progress-pct" style="color:${pct===100?'var(--green)':'var(--gold)'}">${pct}%</span>
+        </div>
+        <div class="grace-progress-track"><div class="grace-progress-fill" style="width:${pct}%;background:${pct===100?'var(--green)':'var(--blue)'}"></div></div>
+        ${liveBox}
+        ${fieldsHTML}
+        <button id="calc-btn" class="${btnClass}" onclick="submitGrace()">${btnText}</button>
+        <button class="grace-back-btn" onclick="goBack()">← Volver al paso anterior</button>
+      </div>
+    </div>`;
+}
+
+function renderGraceResult() {
+  const score = calcGrace();
+  const risk = graceRisk(score);
+
+  // Breakdown
+  const bdRows = GRACE_FIELDS.map(f => {
+    let pts = 0, selLabel = "—";
+    if (f.type === "binary") {
+      pts = graceVals[f.key]==="yes" ? f.yesPoints : 0;
+      selLabel = graceVals[f.key]==="yes" ? f.yesLabel : f.noLabel;
+    } else {
+      const found = f.points.find(p => Number(graceVals[f.key]) <= p.max);
+      if (found) { pts = found.pts; selLabel = found.label; }
+    }
+    const ptsColor = pts > 0 ? "var(--blue-t)" : "var(--dim)";
+    return `
+      <div class="breakdown-row">
+        <span class="breakdown-field">${f.label}</span>
+        <div class="breakdown-right">
+          <span class="breakdown-sel">${selLabel}</span>
+          <span class="breakdown-pts" style="color:${ptsColor}">+${pts}</span>
+        </div>
+      </div>`;
+  }).join("");
+
+  return `
+    <div id="grace-result">
+      <div class="grace-card">
+        <div class="card-badges">${badgeHTML("GRACE Score","gold")} ${badgeHTML("SCASEST","blue")}</div>
+        <div class="result-score-big">
+          <div class="result-score-num" style="color:${risk.color}">${score}</div>
+          <div class="result-score-label">puntos</div>
+          <div class="result-risk-pill">
+            <span style="color:${risk.color};background:${risk.bg};border-color:${risk.border}">RIESGO ${risk.level}</span>
+          </div>
+          <div class="result-mortality">Mortalidad intrahospitalaria estimada: <strong style="color:${risk.color}">${risk.mortality}</strong></div>
+        </div>
+
+        <div class="thresholds">
+          <div class="thresh-item thresh-low"><div class="t-label">BAJO</div><div class="t-range">&lt;109</div></div>
+          <div class="thresh-item thresh-mid"><div class="t-label">INTERMEDIO</div><div class="t-range">109–140</div></div>
+          <div class="thresh-item thresh-high"><div class="t-label">ALTO</div><div class="t-range">&gt;140</div></div>
+        </div>
+
+        <div class="breakdown-box">
+          <div class="breakdown-title">Desglose de puntuación</div>
+          <div class="breakdown-grid">
+            ${bdRows}
+            <div class="breakdown-total"><span class="breakdown-total-val" style="color:${risk.color}">TOTAL: ${score} pts</span></div>
+          </div>
+        </div>
+
+        <div class="rec-box" style="background:${risk.bg};border-color:${risk.border}">
+          <div class="rec-label" style="color:${risk.color}">Recomendación ESC 2023</div>
+          <div class="rec-text">${risk.rec}</div>
+        </div>
+
+        <button id="go-protocol-btn" style="background:${risk.bg};border-color:${risk.border};color:${risk.color}" onclick="navigate('${risk.next}')">
+          Ver protocolo para riesgo ${risk.level} →
+        </button>
+        <button id="recalc-btn" onclick="recalcGrace()">← Recalcular GRACE</button>
+      </div>
+    </div>`;
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function navigate(nextId) {
+  history.push(currentId);
+  currentId = nextId;
+  render();
+}
+
+function goBack() {
+  if (!history.length) return;
+  currentId = history.pop();
+  if (currentId === "grace_calculator") { graceSubmitted = false; }
+  render();
+}
+
+function restart() {
+  history = [];
+  currentId = "start";
+  graceVals = {};
+  graceSubmitted = false;
+  render();
+}
+
+function setGrace(key, val) {
+  graceVals[key] = val;
+  graceSubmitted = false;
+  render();
+  // Scroll to keep user in view
+  setTimeout(() => {
+    const el = document.querySelector(`.field-card.filled:last-of-type`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, 50);
+}
+
+function submitGrace() {
+  if (!graceAllFilled()) return;
+  graceSubmitted = true;
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function recalcGrace() {
+  graceVals = {};
+  graceSubmitted = false;
+  render();
+}
+
+// ── MAIN RENDER ───────────────────────────────────────────────────────────────
+function render() {
+  const step = STEPS[currentId];
+  const container = document.getElementById("view-container");
+  container.innerHTML = renderStep(step);
+
+  // Progress bar
+  const maxSteps = 7;
+  const pct = Math.min(100, (history.length / maxSteps) * 100);
+  document.getElementById("progress-fill").style.width = pct + "%";
+
+  // Back button
+  const backBtn = document.getElementById("back-btn");
+  backBtn.style.display = history.length > 0 ? "inline-block" : "none";
+
+  // Crumbs (last 2)
+  const crumbNames = history.slice(-2).map(id => {
+    const s = STEPS[id];
+    const name = s.eyebrow || s.title || s.id;
+    return `<span class="crumb">${name.slice(0,16)}… /</span>`;
+  });
+  document.getElementById("crumbs").innerHTML = crumbNames.join(" ");
+
+  // Scroll top on new screen
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
